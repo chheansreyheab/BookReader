@@ -1,9 +1,11 @@
 package com.example.bookreader.presentation.main
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,13 +36,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.bookreader.R
 import com.example.bookreader.presentation.browse.BrowseScreen
 import com.example.bookreader.presentation.history.HistoryScreen
+import com.example.bookreader.presentation.home.HomeScreen
 import com.example.bookreader.presentation.library.LibraryScreen
 import com.example.bookreader.presentation.navigator.BottomNavItem
+import com.example.bookreader.presentation.setting.SettingScreen
 import com.example.bookreader.ui.theme.BookReaderTheme
 
 class MainActivity : ComponentActivity() {
 
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -60,11 +65,11 @@ fun MainScreen() {
 
     val items = listOf(
         BottomNavItem(
-            screen = LibraryScreen,
-            title = R.string.library,
-            tooltip = R.string.library,
-            selectedIcon = R.drawable.ic_library_filled,
-            unselectedIcon = R.drawable.ic_library_outline
+            screen = HomeScreen,
+            title = R.string.home,
+            tooltip = R.string.home,
+            selectedIcon = R.drawable.ic_home_filled,
+            unselectedIcon = R.drawable.ic_home_outline
         ),
         BottomNavItem(
             screen = HistoryScreen,
@@ -74,11 +79,11 @@ fun MainScreen() {
             unselectedIcon = R.drawable.ic_history_outline
         ),
         BottomNavItem(
-            screen = BrowseScreen,
-            title = R.string.browse,
-            tooltip = R.string.browse,
-            selectedIcon = R.drawable.ic_browse_filled,
-            unselectedIcon = R.drawable.ic_browse_outline
+            screen = SettingScreen,
+            title = R.string.setting,
+            tooltip = R.string.setting,
+            selectedIcon = R.drawable.ic_setting_filled,
+            unselectedIcon = R.drawable.ic_setting_outline
         )
     )
 
