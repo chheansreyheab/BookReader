@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Book Reader</string>
+
+
+    <string name="library">Library</string>
+    <string name="history">History</string>
+    <string name="browse">Browse</string>
+</resources>
