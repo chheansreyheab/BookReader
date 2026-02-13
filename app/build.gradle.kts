@@ -63,5 +63,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+    implementation("com.google.android.material:material:1.13.0")
 
 }

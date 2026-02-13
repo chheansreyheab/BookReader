@@ -2,6 +2,7 @@ package com.example.bookreader.presentation.main
 
 import BookReaderTheme
 import HomeScreen
+import android.app.Activity
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,13 +19,17 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.bookreader.R
 import com.example.bookreader.presentation.history.HistoryScreen
 import com.example.bookreader.presentation.navigator.BottomNavItem
@@ -37,7 +42,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContent {
             BookReaderTheme(dynamicColor = false) {
                 MainScreen()
@@ -50,6 +54,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
+    val view = LocalView.current
+    val color = MaterialTheme.colorScheme.surfaceContainer
+
+    SideEffect {
+        val window = (view.context as Activity).window
+        window.navigationBarColor = color.toArgb()
+
+        WindowInsetsControllerCompat(window, view)
+            .isAppearanceLightNavigationBars = true
+    }
     val items = listOf(
         BottomNavItem(
             screen = HomeScreen,
@@ -77,9 +91,10 @@ fun MainScreen() {
     var selectedItem by remember { mutableStateOf(items.first()) }
 
     Scaffold(
+
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.onError,// Background color of the bar
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,// Background color of the bar
                 contentColor = MaterialTheme.colorScheme.onSurface// Default color for items
 
             ) {
@@ -107,12 +122,17 @@ fun MainScreen() {
                     )
                 }
             }
-        }
+        },
+
+
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Box(modifier = Modifier.padding(padding,
+            )
+            ) {
             selectedItem.screen.Content()
         }
     }
+
 }
 
 
