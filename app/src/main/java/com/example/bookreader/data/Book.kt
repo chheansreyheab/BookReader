@@ -5,6 +5,7 @@ data class Book(
     val author: String,
     val coverRes: Int,
     val currentRead: Int,
-    val totalRead: Int
+    val totalRead: Int,
+    val uriString: String
 )
 

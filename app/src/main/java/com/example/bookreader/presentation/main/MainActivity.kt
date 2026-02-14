@@ -1,7 +1,6 @@
 package com.example.bookreader.presentation.main
 
 import BookReaderTheme
-import HomeScreen
 import android.app.Activity
 import android.os.Build
 import android.os.Bundle
@@ -32,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.bookreader.R
 import com.example.bookreader.presentation.history.HistoryScreen
+import com.example.bookreader.presentation.home.HomeScreen
 import com.example.bookreader.presentation.navigator.BottomNavItem
 import com.example.bookreader.presentation.navigator.Screen
 import com.example.bookreader.presentation.setting.SettingScreen

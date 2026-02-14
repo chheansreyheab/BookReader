@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
 import com.example.bookreader.presentation.about.AboutScreen
-import com.example.bookreader.presentation.book_info.ReadingPreferencesScreen
+import com.example.bookreader.presentation.about.ReadingPreferencesScreen
 import com.example.bookreader.presentation.browse.BrowseScreen
 import com.example.bookreader.presentation.library.LibraryScreen
 import com.example.bookreader.presentation.navigator.Screen

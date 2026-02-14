@@ -1,17 +1,18 @@
 package com.example.bookreader.presentation.browse
 
-import androidx.compose.foundation.Image
+import Preferences
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,85 +23,99 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
 import com.example.bookreader.presentation.navigator.Screen
 import com.example.bookreader.presentation.setting.SettingScreen
+import com.example.bookreader.utils.Utils
 
 object BrowseScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content(onNavigate: ((Screen) -> Unit)?) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+
+        val context = LocalContext.current
+        val preferences = Preferences(context)
+
+        // Get all saved folder URIs
+        val folders = preferences.getFolders()
+
+        // Scan all folders for books
+        val allFiles = folders.flatMap { uri ->
+            Utils().scanFolderForBooks(context, uri)
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+
             TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.browse),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
+                title = { Text("Browse") },
                 navigationIcon = {
                     IconButton(onClick = { onNavigate?.invoke(SettingScreen) }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back),
-                            contentDescription = stringResource(R.string.back)
+                            contentDescription = "Back"
                         )
                     }
                 },
                 windowInsets = WindowInsets(0)
             )
 
-            // This Column fills the rest of the screen and centers content
-            Column(
+            // Button to go to Scan screen
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(onClick = { onNavigate?.invoke(BrowseScan) }) {
+                    Text("Set up scanning")
+                }
+            }
+
+            // List all scanned books
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f), // ← takes remaining space after TopAppBar
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_document_scanner),
-                    contentDescription = "Scan Document",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                items(allFiles) { file ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_folder),
+                            contentDescription = "File"
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                )
+                        Column(modifier = Modifier.fillMaxWidth(),
+                        ) {
 
-                Text(
-                    text = "Expand your library with your downloaded books!",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 16.dp),
-                    textAlign = TextAlign.Center
-                )
+                            Text(
+                                text = file.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = file.author,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                    }
 
-                Text(
-                    text = "Discover new titles and add your favorites today.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 8.dp),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-
-                Button(
-                    onClick = { onNavigate?.invoke(BrowseScan) },
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    Text("Set up scanning")
                 }
             }
         }
     }
-
-
 }
-

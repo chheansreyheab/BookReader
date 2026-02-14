@@ -1,4 +1,4 @@
-package com.example.bookreader.presentation.book_info
+package com.example.bookreader.presentation.about
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,7 @@ object ReadingPreferencesScreen : Screen {
     @Composable
     override fun Content(onNavigate: ((Screen) -> Unit)?) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.Companion.fillMaxSize()
         ) {
             TopAppBar(
                 title = {
@@ -47,8 +47,8 @@ object ReadingPreferencesScreen : Screen {
                 windowInsets = WindowInsets(0)
             )
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.Companion.fillMaxSize(),
+                contentAlignment = Alignment.Companion.Center
             ) {
                 Text("ReadingPreferences Screen")
             }
