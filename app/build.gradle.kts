@@ -64,5 +64,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation("com.google.android.material:material:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
+    implementation("androidx.navigation:navigation-compose:2.8.5")
 
 }

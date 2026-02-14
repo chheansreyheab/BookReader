@@ -33,10 +33,10 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.example.bookreader.R
 import com.example.bookreader.presentation.history.HistoryScreen
 import com.example.bookreader.presentation.navigator.BottomNavItem
+import com.example.bookreader.presentation.navigator.Screen
 import com.example.bookreader.presentation.setting.SettingScreen
 
 class MainActivity : ComponentActivity() {
-
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,10 +60,11 @@ fun MainScreen() {
     SideEffect {
         val window = (view.context as Activity).window
         window.navigationBarColor = color.toArgb()
-
         WindowInsetsControllerCompat(window, view)
             .isAppearanceLightNavigationBars = true
     }
+
+    // Bottom navigation items
     val items = listOf(
         BottomNavItem(
             screen = HomeScreen,
@@ -88,21 +89,26 @@ fun MainScreen() {
         )
     )
 
+    // Track bottom nav selection
     var selectedItem by remember { mutableStateOf(items.first()) }
 
-    Scaffold(
+    // Track dynamic screen inside SettingScreen
+    var currentScreen by remember { mutableStateOf<Screen>(selectedItem.screen) }
 
+    Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,// Background color of the bar
-                contentColor = MaterialTheme.colorScheme.onSurface// Default color for items
-
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
                 items.forEach { item ->
                     val isSelected = item == selectedItem
                     NavigationBarItem(
                         selected = isSelected,
-                        onClick = { selectedItem = item },
+                        onClick = {
+                            selectedItem = item
+                            currentScreen = item.screen
+                        },
                         label = { Text(stringResource(item.title)) },
                         icon = {
                             Icon(
@@ -122,18 +128,21 @@ fun MainScreen() {
                     )
                 }
             }
-        },
-
-
+        }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding,
+        Box(modifier = Modifier.padding(padding)) {
+            // Pass onNavigate lambda to screens that support it
+            currentScreen.Content(
+                onNavigate = { screen ->
+                    currentScreen = screen
+                }
             )
-            ) {
-            selectedItem.screen.Content()
         }
     }
-
 }
+
+
+
 
 
 

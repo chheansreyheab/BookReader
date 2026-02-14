@@ -43,7 +43,7 @@ object HomeScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content() {
+    override fun Content(onNavigate: ((Screen) -> Unit)?) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,9 +96,15 @@ object HomeScreen : Screen {
 
             val continueReadingBooks = listOf(
                 Book("The Alchemist", "Paulo Coelho", R.drawable.book_cover_placeholder, 1, 5),
-                Book("1984", "George Orwell", R.drawable.book_cover_placeholder, 3, 10),
-                Book("Sapiens", "Yuval Noah Harari", R.drawable.book_cover_placeholder, 2, 8)
+                Book("1984", "George Orwell", R.drawable.book_cover_placeholder1, 3, 10),
+                Book("Sapiens", "Yuval Noah Harari", R.drawable.book_cover_placeholder2, 2, 8)
             )
+            val popularReadingBooks = listOf(
+                Book("The Alchemist", "Paulo Coelho", R.drawable.book_cover_placeholder3, 1, 5),
+                Book("1984", "George Orwell", R.drawable.book_cover_placeholder4, 8, 10),
+                Book("Sapiens", "Yuval Noah Harari", R.drawable.book_cover_placeholder5, 3, 8)
+            )
+
 
 
             LazyRow(
@@ -142,7 +148,7 @@ object HomeScreen : Screen {
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(continueReadingBooks) { book ->
+                items(popularReadingBooks) { book ->
                     PopularBookCard(book)
                 }
             }
@@ -203,7 +209,7 @@ object HomeScreen : Screen {
             modifier = Modifier
                 .width(260.dp) // Wider card for horizontal layout
                 .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -256,6 +262,7 @@ object HomeScreen : Screen {
                                 painter = painterResource(R.drawable.ic_book),
                                 contentDescription = "read"
                             )
+
                             Text(
                                 text = "Read",
                                 fontSize = 12.sp,
@@ -270,6 +277,7 @@ object HomeScreen : Screen {
                                 painter = painterResource(R.drawable.ic_headphone),
                                 contentDescription = "play"
                             )
+
                             Text(
                                 text = "Play",
                                 fontSize = 12.sp,
@@ -341,10 +349,10 @@ object HomeScreen : Screen {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .background(MaterialTheme.colorScheme.primary)
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text(text = name, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = name, fontSize = 14.sp, color = MaterialTheme.colorScheme.surfaceContainer)
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.bookreader.presentation.library
+package com.example.bookreader.presentation.book_info
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +19,11 @@ import com.example.bookreader.R
 import com.example.bookreader.presentation.navigator.Screen
 import com.example.bookreader.presentation.setting.SettingScreen
 
-object LibraryScreen : Screen {
+object ReadingPreferencesScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content(onNavigate: ((Screen) -> Unit)?) {
-
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -47,14 +46,12 @@ object LibraryScreen : Screen {
                 },
                 windowInsets = WindowInsets(0)
             )
-
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Library Screen")
+                Text("ReadingPreferences Screen")
             }
         }
     }
 }
-
