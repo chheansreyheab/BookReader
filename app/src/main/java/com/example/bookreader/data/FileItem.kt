@@ -10,14 +10,5 @@ data class FileItem(
 ) {
     val uri: Uri get() = Uri.parse(uriString)
 }
-fun FileItem.toBook(): Book {
-    return Book(
-        title = this.title,
-        author = this.author,
-        coverRes = R.drawable.book_cover_placeholder, // placeholder image
-        currentRead = 0,
-        totalRead = 1,
-        uriString = this.uriString
-    )
-}
+
 

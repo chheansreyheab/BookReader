@@ -44,9 +44,11 @@ object BrowseScreen : Screen {
         val folders = preferences.getFolders()
 
         // Scan all folders for books
-        val allFiles = folders.flatMap { uri ->
-            Utils().scanFolderForBooks(context, uri)
-        }
+//        val allFiles = folders.flatMap { uri ->
+//            Utils().scanFolderForBooks(context, uri)
+//        }
+        val allFiles = Utils().getAllDeviceBooks(context)
+
 
         Column(modifier = Modifier.fillMaxSize()) {
 
