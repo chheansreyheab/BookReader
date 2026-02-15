@@ -73,4 +73,6 @@ class Preferences(context: Context) {
     fun getProgress(uriString: String): Int {
         return prefs.getInt("progress_$uriString", 0)
     }
+
+
 }

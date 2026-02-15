@@ -63,6 +63,7 @@ dependencies {
     // Room + KSP
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.datastore.preferences.core)
     ksp("androidx.room:room-compiler:2.6.1")
 
     // WorkManager
@@ -70,6 +71,9 @@ dependencies {
 
     // PDF Viewer (JitPack)
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    // EPUB
+    implementation("org.jsoup:jsoup:1.21.2")
 
 
     // Coroutines
