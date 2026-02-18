@@ -2,14 +2,27 @@ package com.example.bookreader.presentation.book_info
 
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -22,10 +35,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bookreader.R
-import com.example.bookreader.data.Book
+import com.example.bookreader.data.HistoryEntry
 import com.example.bookreader.data.toImageBitmap
 import com.example.bookreader.presentation.home.HomeScreen
 import com.example.bookreader.presentation.home.HomeScreen.ProgressReading
+import com.example.bookreader.presentation.home.HomeViewModel
 import com.example.bookreader.presentation.navigator.Screen
 
 object DetailBookInfo : Screen {
@@ -34,6 +48,9 @@ object DetailBookInfo : Screen {
     @Composable
     override fun Content(onNavigate: ((Screen) -> Unit)?) {
         val book = HomeScreen.selectedBook ?: return
+        val context = LocalContext.current
+        val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,12 +116,21 @@ object DetailBookInfo : Screen {
                         maxLines = 2
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = book.author,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    )
+                    Row {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_person),
+                            contentDescription = "Rating",
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = book.author,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Gray,
+                            fontSize = 16.sp
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
                     ProgressReading(book.currentRead, book.totalRead)
                 }
@@ -129,13 +155,18 @@ object DetailBookInfo : Screen {
                         .weight(1f)
                         .height(60.dp),
                     onClick = {
+                        viewModel.addToContinueReading(book)
+                        viewModel.addToHistory(book)
+
                         val uri = Uri.parse(book.uriString)
-                        // Set the selected PDF in PdfViewerScreen
-                        PdfViewerScreen.selectedPdfUri = uri
-                        // Navigate to PdfViewerScreen
-                        onNavigate?.invoke(PdfViewerScreen)
+                        val intent = Intent(context, PdfViewerActivity::class.java).apply {
+                            putExtra(PdfViewerActivity.EXTRA_URI, uri)
+                        }
+                        context.startActivity(intent)
                     }
                 )
+
+
 
 
                 BookActionButton(
@@ -153,13 +184,13 @@ object DetailBookInfo : Screen {
 
             // --- Description Text below buttons ---
             Text(
-                text = "This is a brief description of the book. You can show summary, genre, or any info here.",
+                text = book.description.ifBlank { "No description" },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 fontSize = 14.sp,
-                maxLines = 4,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+
         }
     }
 

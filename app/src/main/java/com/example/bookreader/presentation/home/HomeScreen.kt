@@ -61,10 +61,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.bookreader.R
 import com.example.bookreader.data.Book
+import com.example.bookreader.data.HistoryEntry
 import com.example.bookreader.data.toImageBitmap
 import com.example.bookreader.presentation.book_info.DetailBookInfo
+import com.example.bookreader.presentation.book_info.PdfViewerActivity
 import com.example.bookreader.presentation.navigator.Screen
-import com.example.bookreader.utils.Utils
 
 
 object HomeScreen : Screen {
@@ -245,6 +246,8 @@ object HomeScreen : Screen {
     @Composable
     fun ContinueReadingCard(book: Book, onReadClick: (Book) -> Unit) {
         val context = LocalContext.current
+        val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
         Row(
             modifier = Modifier
                 .width(260.dp)
@@ -293,14 +296,21 @@ object HomeScreen : Screen {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(onClick = {
-                        onReadClick(book)
-                        Utils().openBook(context, book.uriString)
+                        viewModel.addToContinueReading(book)
+                        viewModel.addToHistory(book)
+
+                        val uri = Uri.parse(book.uriString)
+                        val intent = Intent(context, PdfViewerActivity::class.java).apply {
+                            putExtra(PdfViewerActivity.EXTRA_URI, uri)
+                        }
+                        context.startActivity(intent)
                     }) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(painter = painterResource(R.drawable.ic_book), contentDescription = "Read")
                             Text("Read", fontSize = 12.sp, color = Color.Gray)
                         }
                     }
+
                     IconButton(onClick = {}) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(painter = painterResource(R.drawable.ic_headphone), contentDescription = "Play")
@@ -341,7 +351,7 @@ object HomeScreen : Screen {
                 }
             } else {
                 Image(
-                    painter = painterResource(book.coverRes ?: R.drawable.ic_folder),
+                    painter = painterResource(book.coverRes ?: R.drawable.ic_book),
                     contentDescription = book.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -358,7 +368,8 @@ object HomeScreen : Screen {
 
     @Composable
     fun ProgressReading(current: Int, total: Int) {
-        val progress = current.toFloat() / total
+        val progress = if (total > 0) current.toFloat() / total else 0f
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()

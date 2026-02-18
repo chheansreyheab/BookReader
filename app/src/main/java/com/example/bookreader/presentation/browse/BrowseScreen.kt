@@ -1,6 +1,7 @@
 package com.example.bookreader.presentation.browse
 
 import Preferences
+import Utils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
 import com.example.bookreader.presentation.navigator.Screen
 import com.example.bookreader.presentation.setting.SettingScreen
-import com.example.bookreader.utils.Utils
 
 object BrowseScreen : Screen {
 

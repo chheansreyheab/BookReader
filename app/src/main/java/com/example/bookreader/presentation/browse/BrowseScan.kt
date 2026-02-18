@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
 import com.example.bookreader.data.FolderItem
 import com.example.bookreader.presentation.navigator.Screen
+import com.example.bookreader.presentation.setting.SettingScreen
 
 object BrowseScan : Screen {
 
@@ -73,7 +74,7 @@ object BrowseScan : Screen {
             TopAppBar(
                 title = { Text("Scan") },
                 navigationIcon = {
-                    IconButton(onClick = { onNavigate?.invoke(BrowseScreen) }) {
+                    IconButton(onClick = { onNavigate?.invoke(SettingScreen) }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_back),
                             contentDescription = "Back"

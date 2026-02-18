@@ -2,14 +2,16 @@ package com.example.bookreader.presentation.home
 
 
 import Preferences
+import Utils
 import android.app.Application
 import android.content.Context
 import android.os.Build
 import android.os.Environment
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookreader.data.Book
-import com.example.bookreader.utils.Utils
+import com.example.bookreader.data.HistoryEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +38,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefs = Preferences(context)
 
+
+    private val _history = mutableStateListOf<HistoryEntry>()
+    val history: List<HistoryEntry> get() = _history
+
+    fun addToHistory(book: Book) {
+        val timestamp = System.currentTimeMillis()
+
+        // Avoid duplicates (move to top instead)
+        _history.removeAll { it.book.uriString == book.uriString }
+
+        val entry = HistoryEntry(book, timestamp)
+        _history.add(0, entry)
+
+        prefs.addToHistory(book.uriString, timestamp)
+    }
+
     init {
         if (hasPermission) scanDeviceBooks()
     }
@@ -52,6 +70,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             _continueReading.value = books.filter { continueUris.contains(it.uriString) }
 
             _scanning.value = false
+
+            val historyData = prefs.getHistory()
+            _history.clear()
+
+            historyData.sortedByDescending { it.second }.forEach { (uri, timestamp) ->
+                books.find { it.uriString == uri }?.let { book ->
+                    _history.add(HistoryEntry(book, timestamp))
+                }
+            }
+
         }
     }
 

@@ -1,5 +1,6 @@
 import android.content.Context
 import android.net.Uri
+import com.example.bookreader.data.HistoryEntry
 
 class Preferences(context: Context) {
 
@@ -9,6 +10,7 @@ class Preferences(context: Context) {
         private const val KEY_FOLDERS = "scanned_folders"
         private const val KEY_FIRST_SCAN_DONE = "first_scan_done"
         private const val KEY_CONTINUE_READING = "continue_reading"
+        private const val KEY_HISTORY = "reading_history"
     }
 
     /* ------------------------------
@@ -72,6 +74,22 @@ class Preferences(context: Context) {
 
     fun getProgress(uriString: String): Int {
         return prefs.getInt("progress_$uriString", 0)
+    }
+
+    fun addToHistory(uriString: String, timestamp: Long) {
+        val saved = prefs.getStringSet(KEY_HISTORY, emptySet())?.toMutableSet() ?: mutableSetOf()
+        saved.add("$uriString|$timestamp")
+        prefs.edit().putStringSet(KEY_HISTORY, saved).apply()
+    }
+
+    fun getHistory(): List<Pair<String, Long>> {
+        val saved = prefs.getStringSet(KEY_HISTORY, emptySet()) ?: emptySet()
+        return saved.mapNotNull {
+            val parts = it.split("|")
+            if (parts.size == 2) {
+                parts[0] to (parts[1].toLongOrNull() ?: 0L)
+            } else null
+        }
     }
 
 

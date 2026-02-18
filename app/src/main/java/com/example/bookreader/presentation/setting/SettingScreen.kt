@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
 import com.example.bookreader.presentation.about.AboutScreen
 import com.example.bookreader.presentation.about.ReadingPreferencesScreen
-import com.example.bookreader.presentation.browse.BrowseScreen
+import com.example.bookreader.presentation.browse.BrowseScan
 import com.example.bookreader.presentation.library.LibraryScreen
 import com.example.bookreader.presentation.navigator.Screen
 
@@ -48,7 +48,7 @@ object SettingScreen : Screen {
                 icon = painterResource(id = R.drawable.ic_theme),
                 title = "Dark Mode",
                 subtitle = "Enable or disable dark theme",
-                onClick = { onNavigate?.invoke(BrowseScreen) }
+                onClick = { onNavigate?.invoke(LibraryScreen) }
 
 
             )
@@ -56,7 +56,7 @@ object SettingScreen : Screen {
                 icon = painterResource(id = R.drawable.ic_language),
                 title = "Language",
                 subtitle = "Change app language",
-                onClick = { onNavigate?.invoke(BrowseScreen) }
+                onClick = { onNavigate?.invoke(LibraryScreen) }
 
             )
             SettingItem(
@@ -79,7 +79,7 @@ object SettingScreen : Screen {
                 icon = painterResource(id = R.drawable.ic_browse),
                 title = "Browse",
                 subtitle = "Search and explore books",
-                onClick = { onNavigate?.invoke(BrowseScreen) }
+                onClick = { onNavigate?.invoke(BrowseScan) }
             )
 
             SettingItem(

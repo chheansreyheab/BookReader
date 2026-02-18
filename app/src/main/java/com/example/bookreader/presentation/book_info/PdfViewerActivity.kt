@@ -1,62 +1,68 @@
-import android.content.Context
+package com.example.bookreader.presentation.book_info
+
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.Bundle
+import android.util.DisplayMetrics
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.bookreader.R
-import com.example.bookreader.presentation.book_info.DetailBookInfo
-import com.example.bookreader.presentation.navigator.Screen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-object PdfViewerScreen : Screen {
+class PdfViewerActivity : ComponentActivity() {
 
-    var selectedPdfUri: Uri? = null
+    companion object {
+        const val EXTRA_URI = "extra_pdf_uri"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val pdfUri = intent.getParcelableExtra<Uri>(EXTRA_URI) ?: run {
+            finish()
+            return
+        }
+
+        setContent {
+            PdfViewerScreenContent(pdfUri) { finish() }
+        }
+    }
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    fun PdfViewerScreenContent(pdfUri: Uri, onBack: () -> Unit) {
         val context = LocalContext.current
-        val uri = selectedPdfUri ?: return
-
         val rendererState = remember { mutableStateOf<PdfRenderer?>(null) }
         val pageCount = rendererState.value?.pageCount ?: 0
 
         // Open PDF once
-        LaunchedEffect(uri) {
+        LaunchedEffect(pdfUri) {
             rendererState.value?.close()
-            rendererState.value = openPdfRenderer(context, uri)
+            rendererState.value = openPdfRenderer(context, pdfUri)
         }
 
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = {},
+                    title = { Text("PDF Viewer") },
                     navigationIcon = {
-                        IconButton(onClick = { onNavigate?.invoke(DetailBookInfo) }) {
+                        IconButton(onClick = { onBack() }) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_arrow_back),
+                                painter =
+                                    painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = "Back"
                             )
                         }
@@ -64,7 +70,6 @@ object PdfViewerScreen : Screen {
                 )
             }
         ) { padding ->
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -79,17 +84,14 @@ object PdfViewerScreen : Screen {
             }
         }
 
-        // Close renderer when leaving screen
         DisposableEffect(Unit) {
-            onDispose {
-                rendererState.value?.close()
-            }
+            onDispose { rendererState.value?.close() }
         }
     }
 
     @Composable
-    private fun PdfPageItem(context: Context, renderer: PdfRenderer, pageIndex: Int) {
-        var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    private fun PdfPageItem(context: android.content.Context, renderer: PdfRenderer, pageIndex: Int) {
+        var bitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
 
         LaunchedEffect(pageIndex) {
             bitmap = renderPage(context, renderer, pageIndex)
@@ -107,13 +109,13 @@ object PdfViewerScreen : Screen {
     }
 
     private suspend fun renderPage(
-        context: Context,
+        context: android.content.Context,
         renderer: PdfRenderer,
         pageIndex: Int
-    ): ImageBitmap? = withContext(kotlinx.coroutines.Dispatchers.IO) {
+    ): androidx.compose.ui.graphics.ImageBitmap? = withContext(Dispatchers.IO) {
         try {
             renderer.openPage(pageIndex).use { page ->
-                val metrics = context.resources.displayMetrics
+                val metrics: DisplayMetrics = context.resources.displayMetrics
                 val screenWidth = metrics.widthPixels
                 val scale = screenWidth.toFloat() / page.width
                 val scaledHeight = (page.height * scale).toInt()
@@ -132,7 +134,7 @@ object PdfViewerScreen : Screen {
         }
     }
 
-    private fun openPdfRenderer(context: Context, uri: Uri): PdfRenderer? {
+    private fun openPdfRenderer(context: android.content.Context, uri: Uri): PdfRenderer? {
         return try {
             context.contentResolver.openFileDescriptor(uri, "r")?.let { PdfRenderer(it) }
         } catch (e: Exception) {
@@ -140,4 +142,5 @@ object PdfViewerScreen : Screen {
             null
         }
     }
+
 }
