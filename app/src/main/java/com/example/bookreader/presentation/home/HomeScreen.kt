@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,16 +42,16 @@ object HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content(onNavigate: ((Screen) -> Unit)?) {
+
         val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         val context = LocalContext.current
 
         val uiState by viewModel.uiState.collectAsState()
         val scanning by viewModel.scanning.collectAsState()
-        val newBooks by viewModel.newBooksCount.collectAsState()
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // --- Permission dialog ---
+            // --- Permission Dialog ---
             if (!viewModel.hasPermission) {
                 RequestPermissionDialog {
                     val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
@@ -59,6 +60,7 @@ object HomeScreen : Screen {
                 }
             }
 
+            // --- Main Content ---
             Column(modifier = Modifier.fillMaxSize()) {
 
                 TopAppBar(
@@ -68,6 +70,7 @@ object HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Only show content if uiState is Content
                 if (uiState is HomeUiState.Content) {
                     val content = uiState as HomeUiState.Content
 
@@ -82,17 +85,19 @@ object HomeScreen : Screen {
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(start = 16.dp)
                         )
+
                         LazyRow(
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(content.continueReading) { book ->
                                 ContinueReadingCard(book) { clickedBook ->
-                                    viewModel.addToContinueReading(clickedBook)
+                                    selectedBook = clickedBook
                                     onNavigate?.invoke(DetailBookInfo)
                                 }
                             }
                         }
+
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
@@ -110,50 +115,50 @@ object HomeScreen : Screen {
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        items(content.localBooks, key = { it.uriString }) { book ->
+                        items(content.localBooks) { book ->
                             LocalBookCard(book) { clickedBook ->
+                                selectedBook = clickedBook
                                 viewModel.addToContinueReading(clickedBook)
                                 onNavigate?.invoke(DetailBookInfo)
                             }
                         }
                     }
-
-                    // --- Footer scanning indicator ---
-                    if (scanning) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    if (newBooks == 0) "Scanning for new books..."
-                                    else "Found $newBooks new book${if (newBooks > 1) "s" else ""} so far",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
                 }
 
-                if (uiState is HomeUiState.Loading && !scanning) {
+                // --- Optional Loading Indicator for first launch ---
+                if (uiState is HomeUiState.Loading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
+                    }
+                }
+            }
+
+            // --- Floating scanning footer ---
+            if (scanning) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Scanning for new books...", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
         }
     }
 
+    // --- Permission Dialog ---
     @Composable
     fun RequestPermissionDialog(onGrant: () -> Unit) {
         AlertDialog(
@@ -164,6 +169,7 @@ object HomeScreen : Screen {
         )
     }
 
+    // --- Goal Card ---
     @Composable
     fun GoalCard(currentBooks: Int, totalBooks: Int) {
         val progress = currentBooks.toFloat() / totalBooks
@@ -200,6 +206,7 @@ object HomeScreen : Screen {
         }
     }
 
+    // --- Continue Reading Card ---
     @Composable
     fun ContinueReadingCard(book: Book, onReadClick: (Book) -> Unit) {
         val context = LocalContext.current
@@ -238,24 +245,27 @@ object HomeScreen : Screen {
                 Spacer(modifier = Modifier.height(8.dp))
                 ProgressReading(book.currentRead, book.totalRead)
                 Spacer(modifier = Modifier.height(8.dp))
-                IconButton(onClick = {
-                    viewModel.addToContinueReading(book)
-                    viewModel.addToHistory(book)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    IconButton(onClick = {
+                        viewModel.addToContinueReading(book)
+                        viewModel.addToHistory(book)
 
-                    val uri = Uri.parse(book.uriString)
-                    val intent = Intent(context, PdfViewerActivity::class.java)
-                    intent.putExtra(PdfViewerActivity.EXTRA_URI, uri)
-                    context.startActivity(intent)
-                }) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(painter = painterResource(R.drawable.ic_book), contentDescription = "Read")
-                        Text("Read", fontSize = 12.sp, color = Color.Gray)
+                        val uri = Uri.parse(book.uriString)
+                        val intent = Intent(context, PdfViewerActivity::class.java)
+                        intent.putExtra(PdfViewerActivity.EXTRA_URI, uri)
+                        context.startActivity(intent)
+                    }) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(painter = painterResource(R.drawable.ic_book), contentDescription = "Read")
+                            Text("Read", fontSize = 12.sp, color = Color.Gray)
+                        }
                     }
                 }
             }
         }
     }
 
+    // --- Local Book Card ---
     @Composable
     fun LocalBookCard(book: Book, onClick: (Book) -> Unit) {
         Column(
@@ -289,10 +299,11 @@ object HomeScreen : Screen {
         }
     }
 
+    // --- Progress Bar ---
     @Composable
     fun ProgressReading(current: Int, total: Int) {
         val progress = if (total > 0) current.toFloat() / total else 0f
-        val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
+        val animatedProgress by animateFloatAsState(
             targetValue = progress,
             animationSpec = tween(500)
         )
