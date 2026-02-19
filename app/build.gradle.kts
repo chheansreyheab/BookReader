@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.androidx.documentfile)
     implementation(libs.ui.graphics)
+    implementation(libs.androidx.runtime)
     ksp("androidx.room:room-compiler:2.6.1")
 
     // WorkManager

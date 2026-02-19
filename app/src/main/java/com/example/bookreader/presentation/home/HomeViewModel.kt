@@ -28,15 +28,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val context: Context = application
     private val prefs = Preferences(context)
 
+    // All scanned books
     private val _localBooks = MutableStateFlow<List<Book>>(emptyList())
-    val localBooks: StateFlow<List<Book>> = _localBooks
+    val localBooks: StateFlow<List<Book>> get() = _localBooks
 
+    // Continue Reading
     private val _continueReading = MutableStateFlow<List<Book>>(emptyList())
-    val continueReading: StateFlow<List<Book>> = _continueReading
+    val continueReading: StateFlow<List<Book>> get() = _continueReading
 
-    private val _history = mutableStateListOf<HistoryEntry>()
-    val history: List<HistoryEntry> get() = _history
-
+    // Scanning state
     private val _scanning = MutableStateFlow(false)
     val scanning: StateFlow<Boolean> = _scanning
 
@@ -54,6 +54,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val hasPermission: Boolean
         get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager()
 
+    // History
+    private val _history = mutableStateListOf<HistoryEntry>()
+    val history: List<HistoryEntry> get() = _history
+
     // --- Combine UI state ---
     val uiState: StateFlow<HomeUiState> = combine(
         _localBooks, _continueReading
@@ -61,7 +65,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         HomeUiState.Content(localBooks = books, continueReading = continueBooks)
     }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState.Loading)
 
-    init { checkAndScan() }
+    init {
+        if (hasPermission && _localBooks.value.isEmpty()) {
+            scanDeviceBooks()
+        }
+    }
 
     private fun checkAndScan() {
         if (!hasPermission) return
@@ -71,43 +79,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun scanDeviceBooks() {
         viewModelScope.launch(Dispatchers.IO) {
             _scanning.value = true
-            _newBooksCount.value = 0
-
-            val existingUris = _localBooks.value.map { it.uriString }.toMutableSet()
+            val books = Utils().getAllDeviceBooks(context)
+            _localBooks.value = books
+            // Load Continue Reading from prefs
             val continueUris = prefs.getContinueReading()
-            val historyData = prefs.getHistory()
-
-            val scannedBooks = Utils().getAllDeviceBooks(context)
-
-            // --- Filter only new books ---
-            val newBooks = scannedBooks.filter { it.uriString !in existingUris }
-
-            if (newBooks.isNotEmpty()) {
-                // --- append new books to local list without removing old books ---
-                _localBooks.value = _localBooks.value + newBooks
-
-                // --- add to continue reading if in prefs ---
-                val updatedContinueReading = _continueReading.value.toMutableList()
-                newBooks.forEach { book ->
-                    if (continueUris.contains(book.uriString)) {
-                        updatedContinueReading.add(book)
-                    }
-                }
-                _continueReading.value = updatedContinueReading
-
-                // --- update history for all books (old + new) ---
-                _history.clear()
-                historyData.sortedByDescending { it.second }.forEach { (uri, timestamp) ->
-                    _localBooks.value.find { it.uriString == uri }?.let { book ->
-                        _history.add(HistoryEntry(book, timestamp))
-                    }
-                }
-
-                _newBooksCount.value = newBooks.size
-            }
-
+            _continueReading.value = books.filter { continueUris.contains(it.uriString) }
             _scanning.value = false
-            hasScannedOnce = true
+            val historyData = prefs.getHistory()
+            _history.clear()
+            historyData.sortedByDescending { it.second }.forEach { (uri, timestamp) ->
+                books.find { it.uriString == uri }
+                    ?.let { book -> _history.add(HistoryEntry(book, timestamp)) }
+            }
         }
     }
 
@@ -139,6 +122,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (!hasScannedOnce) scanDeviceBooks()
     }
 }
+
 
 
 
