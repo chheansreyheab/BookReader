@@ -1,6 +1,6 @@
 import android.content.Context
 import android.net.Uri
-import com.example.bookreader.data.HistoryEntry
+
 
 class Preferences(context: Context) {
 
@@ -11,10 +11,12 @@ class Preferences(context: Context) {
         private const val KEY_FIRST_SCAN_DONE = "first_scan_done"
         private const val KEY_CONTINUE_READING = "continue_reading"
         private const val KEY_HISTORY = "reading_history"
+        private const val KEY_SCANNED_BOOKS = "scanned_books"
+        private const val KEY_LAST_SCAN_TIME = "last_scan_time"
     }
 
     /* ------------------------------
-       📂 Folder Handling
+       Folder Handling
     ------------------------------ */
 
     fun addFolder(uri: Uri) {
@@ -39,7 +41,7 @@ class Preferences(context: Context) {
     }
 
     /* ------------------------------
-       🚀 First Install Scan
+       First Install Scan
     ------------------------------ */
 
     fun isFirstScanDone(): Boolean {
@@ -51,7 +53,7 @@ class Preferences(context: Context) {
     }
 
     /* ------------------------------
-       📖 Continue Reading
+        Continue Reading
     ------------------------------ */
 
     fun addToContinueReading(uriString: String) {
@@ -65,7 +67,7 @@ class Preferences(context: Context) {
     }
 
     /* ------------------------------
-       📊 Reading Progress
+        Reading Progress
     ------------------------------ */
 
     fun saveProgress(uriString: String, progress: Int) {
@@ -91,6 +93,43 @@ class Preferences(context: Context) {
             } else null
         }
     }
+
+    fun saveGoal(goal: Int) {
+        prefs.edit().putInt("reading_goal", goal).apply()
+    }
+
+    fun getGoal(): Int {
+        return prefs.getInt("reading_goal", 10)
+    }
+
+    fun setFirstLaunchDone() {
+        prefs.edit().putBoolean("first_launch_done", true).apply()
+    }
+
+    fun isFirstLaunch(): Boolean {
+        return !prefs.getBoolean("first_launch_done", false)
+    }
+
+    // Save scanned book URIs persistently
+    fun saveScannedBooks(uris: Set<String>) {
+        prefs.edit().putStringSet(KEY_SCANNED_BOOKS, uris).apply()
+    }
+
+    // Get scanned book URIs
+    fun getScannedBooks(): Set<String> {
+        return prefs.getStringSet(KEY_SCANNED_BOOKS, emptySet()) ?: emptySet()
+    }
+
+    // Save last scan timestamp
+    fun saveLastScanTime(time: Long) {
+        prefs.edit().putLong(KEY_LAST_SCAN_TIME, time).apply()
+    }
+
+    // Get last scan timestamp
+    fun getLastScanTime(): Long {
+        return prefs.getLong(KEY_LAST_SCAN_TIME, 0L)
+    }
+
 
 
 }

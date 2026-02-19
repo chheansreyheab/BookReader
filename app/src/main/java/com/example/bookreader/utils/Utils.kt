@@ -289,27 +289,44 @@ class Utils {
 
 
 
-    fun groupHistoryByDate(history: List<HistoryEntry>): Map<String, List<HistoryEntry>> {
+    fun groupHistoryByDate(history: List<HistoryEntry>): LinkedHashMap<String, MutableList<HistoryEntry>> {
+
+        val result = LinkedHashMap<String, MutableList<HistoryEntry>>()
+
         val today = Calendar.getInstance()
-        val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+        val yesterday = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -1)
+        }
 
-        val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
 
-        return history.groupBy { entry ->
-            val cal = Calendar.getInstance().apply { timeInMillis = entry.timestamp }
-            when {
-                cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                        cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "Today"
+        history.forEach { entry ->
 
-                cal.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
-                        cal.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR) -> "Yesterday"
+            val entryCal = Calendar.getInstance().apply {
+                timeInMillis = entry.timestamp
+            }
 
+            val label = when {
+                isSameDay(entryCal, today) -> "Today"
+                isSameDay(entryCal, yesterday) -> "Yesterday"
                 else -> dateFormat.format(Date(entry.timestamp))
             }
-        }.toSortedMap(compareByDescending { it }) // newest date first
+
+            if (!result.containsKey(label)) {
+                result[label] = mutableListOf()
+            }
+
+            result[label]?.add(entry)
+        }
+
+        return result
     }
 
 
+    private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    }
 
 
 

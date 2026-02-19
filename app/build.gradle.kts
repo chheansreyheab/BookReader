@@ -70,6 +70,8 @@ dependencies {
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.compose.foundation:foundation:1.4.8")
+    implementation("androidx.compose.animation:animation-core:1.4.8")
 
     // PDF Viewer (JitPack)
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")

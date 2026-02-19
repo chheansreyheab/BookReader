@@ -1,5 +1,6 @@
 package com.example.bookreader.presentation.setting
 
+import GoalScreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -80,6 +81,12 @@ object SettingScreen : Screen {
                 title = "Browse",
                 subtitle = "Search and explore books",
                 onClick = { onNavigate?.invoke(BrowseScan) }
+            )
+            SettingItem(
+                icon = painterResource(id = R.drawable.ic_person_celebrate),
+                title = "Goal",
+                subtitle = "Set reading goal",
+                onClick = { onNavigate?.invoke(GoalScreen) }
             )
 
             SettingItem(

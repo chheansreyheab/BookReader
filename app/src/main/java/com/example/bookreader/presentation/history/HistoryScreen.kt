@@ -64,7 +64,11 @@ object HistoryScreen : Screen {
 
     @Composable
     fun HistoryList(history: List<HistoryEntry>) {
-        val grouped = Utils().groupHistoryByDate(history)
+
+        // Newest first
+        val sortedHistory = history.sortedByDescending { it.timestamp }
+
+        val grouped = Utils().groupHistoryByDate(sortedHistory)
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -87,6 +91,7 @@ object HistoryScreen : Screen {
             }
         }
     }
+
 
     @Composable
     fun HistoryBookItem(book: Book) {
