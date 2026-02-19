@@ -1,6 +1,7 @@
 package com.example.bookreader.presentation.main
 
 import BookReaderTheme
+import Preferences
 import android.app.Activity
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.bookreader.R
+import com.example.bookreader.preferences.Constants
 import com.example.bookreader.presentation.history.HistoryScreen
 import com.example.bookreader.presentation.home.HomeScreen
 import com.example.bookreader.presentation.navigator.BottomNavItem
@@ -55,7 +57,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val view = LocalView.current
+    val context = LocalView.current.context
     val color = MaterialTheme.colorScheme.surfaceContainer
+    val preferences = remember { Preferences(context) }
+
+    val savedScreen = preferences.getLastScreen()
 
     SideEffect {
         val window = (view.context as Activity).window
@@ -88,12 +94,17 @@ fun MainScreen() {
             unselectedIcon = R.drawable.ic_setting_outline
         )
     )
-
+    val startItem = when (savedScreen) {
+        Constants.Screens.HISTORY -> items[1]
+        Constants.Screens.SETTINGS -> items[2]
+        else -> items[0]
+    }
     // Track bottom nav selection
-    var selectedItem by remember { mutableStateOf(items.first()) }
+    var selectedItem by remember { mutableStateOf(startItem) }
 
     // Track dynamic screen inside SettingScreen
-    var currentScreen by remember { mutableStateOf<Screen>(selectedItem.screen) }
+    var currentScreen by remember { mutableStateOf<Screen>(startItem.screen) }
+
 
     Scaffold(
         bottomBar = {
@@ -108,6 +119,15 @@ fun MainScreen() {
                         onClick = {
                             selectedItem = item
                             currentScreen = item.screen
+
+                            val screenName = when (item.screen) {
+                                HomeScreen -> Constants.Screens.HOME
+                                HistoryScreen -> Constants.Screens.HISTORY
+                                SettingScreen -> Constants.Screens.SETTINGS
+                                else -> Constants.Screens.HOME
+                            }
+
+                            preferences.saveLastScreen(screenName)
                         },
                         label = { Text(stringResource(item.title)) },
                         icon = {

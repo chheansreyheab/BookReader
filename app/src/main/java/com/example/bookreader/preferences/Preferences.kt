@@ -1,5 +1,6 @@
 import android.content.Context
 import android.net.Uri
+import com.example.bookreader.preferences.Constants
 
 
 class Preferences(context: Context) {
@@ -13,6 +14,19 @@ class Preferences(context: Context) {
         private const val KEY_HISTORY = "reading_history"
         private const val KEY_SCANNED_BOOKS = "scanned_books"
         private const val KEY_LAST_SCAN_TIME = "last_scan_time"
+        private const val KEY_LAST_SCREEN = "last_screen"
+    }
+
+    /* ------------------------------
+   Last Opened Main Screen
+------------------------------ */
+
+    fun saveLastScreen(screen: String) {
+        prefs.edit().putString(KEY_LAST_SCREEN, screen).apply()
+    }
+
+    fun getLastScreen(): String {
+        return prefs.getString(KEY_LAST_SCREEN, Constants.Screens.HOME) ?: Constants.Screens.HOME
     }
 
     /* ------------------------------
