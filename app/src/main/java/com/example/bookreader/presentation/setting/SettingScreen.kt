@@ -25,7 +25,7 @@ import com.example.bookreader.presentation.navigator.Screen
 object SettingScreen : Screen {
 
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
         SettingScreenContent(onNavigate)
     }
 

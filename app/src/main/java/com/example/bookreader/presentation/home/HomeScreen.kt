@@ -61,10 +61,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookreader.R
 import com.example.bookreader.data.Book
 import com.example.bookreader.data.toImageBitmap
 import com.example.bookreader.presentation.book_info.DetailBookInfo
+import com.example.bookreader.presentation.book_info.EpubViewerActivity
 import com.example.bookreader.presentation.book_info.PdfViewerActivity
 import com.example.bookreader.presentation.navigator.Screen
 
@@ -75,7 +77,7 @@ object HomeScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
 
         val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         val context = LocalContext.current
@@ -97,7 +99,7 @@ object HomeScreen : Screen {
                         val granted = Environment.isExternalStorageManager()
                         if (granted && !hasPermission) {
                             showPermissionDialog = false
-                            viewModel.scanDeviceBooks()
+                            viewModel.scanBooks()
 
                             if (viewModel.isFirstLaunch) {
                                 onNavigate?.invoke(GoalScreen)
@@ -341,9 +343,33 @@ object HomeScreen : Screen {
                         viewModel.addToHistory(book)
 
                         val uri = Uri.parse(book.uriString)
-                        val intent = Intent(context, PdfViewerActivity::class.java)
+                        /*val intent = Intent(context, PdfViewerActivity::class.java)
                         intent.putExtra(PdfViewerActivity.EXTRA_URI, uri)
-                        context.startActivity(intent)
+                        context.startActivity(intent)*/
+
+                        val mimeType = context.contentResolver.getType(uri) ?: "*/*"
+
+                        when (mimeType) {
+                            "application/pdf" -> {
+                                val intent = Intent(context, PdfViewerActivity::class.java)
+                                intent.putExtra(PdfViewerActivity.EXTRA_URI, uri)
+                                context.startActivity(intent)
+                            }
+
+                            "application/epub+zip" -> {
+                                val intent = Intent(context, EpubViewerActivity::class.java)
+                                intent.putExtra(EpubViewerActivity.EXTRA_URI, uri)
+                                context.startActivity(intent)
+                            }
+
+                            else -> {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(uri, mimeType)
+                                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                }
+                                context.startActivity(intent)
+                            }
+                        }
                     }) {
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -442,4 +468,5 @@ object HomeScreen : Screen {
             )
         }
     }
+
 }

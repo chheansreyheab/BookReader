@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 
 interface Screen {
     @Composable
-    fun Content(onNavigate: ((Screen) -> Unit)? = null)
+    fun Content(onNavigate: (Screen) -> Unit)
 }

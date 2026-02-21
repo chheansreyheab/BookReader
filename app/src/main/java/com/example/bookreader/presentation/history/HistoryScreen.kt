@@ -30,7 +30,7 @@ object HistoryScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
         val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         val history = viewModel.history
 

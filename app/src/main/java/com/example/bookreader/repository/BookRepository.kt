@@ -1,62 +1,51 @@
 package com.example.bookreader.repository
 
-import Preferences
 import Utils
-import android.R.attr.delay
 import android.content.Context
 import com.example.bookreader.data.Book
-import kotlinx.coroutines.delay
+import com.example.bookreader.data.BookDao
+import com.example.bookreader.data.toDomain
+import com.example.bookreader.data.toEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import java.io.File
+import kotlinx.coroutines.flow.map
 
-class BookRepository(private val context: Context) {
+class BookRepository(
+    private val context: Context,
+    private val bookDao: BookDao
+) {
 
-    // --- Return all local books instantly ---
-    fun getAllLocalBooks(): List<Book> {
-        // Example: scan your app-specific directory or saved books DB
-        val savedBooksDir = File(context.filesDir, "books")
-        if (!savedBooksDir.exists()) savedBooksDir.mkdirs()
-        return savedBooksDir.listFiles()?.map { file ->
-            Book(
-                title = file.nameWithoutExtension,
-                author = "Unknown",
-                uriString = file.absolutePath,
-                coverRes = null,
-                coverBytes = null,
-                currentRead = 0,
-                totalRead = 100
-            )
-        } ?: emptyList()
+    // Flow for reactive UI updates
+    fun observeBooks(): Flow<List<Book>> {
+        return bookDao.getAllBooks()
+            .map { list -> list.map { it.toDomain() } }
     }
 
-    // --- Scan for new books incrementally ---
-    fun scanBooksFlow(): Flow<Book> = flow {
-        val externalBooksDir = File(context.filesDir, "new_books") // simulate external source
-        if (!externalBooksDir.exists()) externalBooksDir.mkdirs()
+    // Scan device and save only new books
+    suspend fun smartScan(): Int {
+        val deviceBooks = Utils().getAllDeviceBooks(context)
+        val deviceUris = deviceBooks.map { it.uriString }
 
-        val files = externalBooksDir.listFiles()?.toList() ?: emptyList()
-        for (file in files) {
-            // simulate delay for scanning
-            delay(500)
-            emit(
-                Book(
-                    title = file.nameWithoutExtension,
-                    author = "Unknown",
-                    uriString = file.absolutePath,
-                    coverRes = null,
-                    coverBytes = null,
-                    currentRead = 0,
-                    totalRead = 100
-                )
-            )
+        val existingUris = bookDao.getAllUris()
+
+        // New books
+        val newBooks = deviceBooks.filter { it.uriString !in existingUris }
+
+        if (newBooks.isNotEmpty()) {
+            bookDao.insertBooks(newBooks.map { it.toEntity() })
         }
+
+        // Remove deleted books
+        bookDao.deleteRemovedBooks(deviceUris)
+
+        return newBooks.size
     }
 
-    // --- History storage ---
-    fun addBookToHistory(book: Book) {
-        // Save to database or SharedPreferences
-        // Example: context.getSharedPreferences("history", Context.MODE_PRIVATE)
+    suspend fun updateProgress(uri: String, current: Int) {
+        bookDao.updateProgress(uri, current)
+    }
+
+    suspend fun getSavedBooks(): List<Book> {
+        val entities = bookDao.getAllBooksOnce() // <-- suspend function
+        return entities.map { it.toDomain() }
     }
 }
-

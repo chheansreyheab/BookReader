@@ -13,8 +13,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import com.example.bookreader.AppDatabase
 import com.example.bookreader.data.Book
 import com.example.bookreader.data.HistoryEntry
+import com.example.bookreader.repository.BookRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +30,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val context: Context = application
     private val prefs = Preferences(context)
+    private val database = Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "book_database"
+    ).build()
 
+    private val repository = BookRepository(context, database.bookDao())
     // All scanned books
     private val _localBooks = MutableStateFlow<List<Book>>(emptyList())
     val localBooks: StateFlow<List<Book>> get() = _localBooks
@@ -65,34 +74,51 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         HomeUiState.Content(localBooks = books, continueReading = continueBooks)
     }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState.Loading)
 
+
     init {
-        if (hasPermission && _localBooks.value.isEmpty()) {
-            scanDeviceBooks()
+        loadBooks()
+
+        if (hasPermission) {
+            scanBooks()
         }
     }
 
-    private fun checkAndScan() {
-        if (!hasPermission) return
-        if (!hasScannedOnce) scanDeviceBooks()
-    }
-
-    fun scanDeviceBooks() {
+    private fun loadBooks() {
         viewModelScope.launch(Dispatchers.IO) {
-            _scanning.value = true
-            val books = Utils().getAllDeviceBooks(context)
-            _localBooks.value = books
-            // Load Continue Reading from prefs
-            val continueUris = prefs.getContinueReading()
-            _continueReading.value = books.filter { continueUris.contains(it.uriString) }
-            _scanning.value = false
-            val historyData = prefs.getHistory()
-            _history.clear()
-            historyData.sortedByDescending { it.second }.forEach { (uri, timestamp) ->
-                books.find { it.uriString == uri }
-                    ?.let { book -> _history.add(HistoryEntry(book, timestamp)) }
+
+            val savedBooks = repository.getSavedBooks()
+            _localBooks.value = savedBooks
+            loadContinueReading(savedBooks)
+            loadHistory(savedBooks)   // ← ADD THIS
+
+            if (hasPermission) {
+                _scanning.value = true
+                repository.smartScan()
+                val updatedBooks = repository.getSavedBooks()
+                _localBooks.value = updatedBooks
+                loadContinueReading(updatedBooks)
+                loadHistory(updatedBooks)
+                _scanning.value = false
             }
         }
     }
+    fun scanBooks() {
+        if (!hasPermission) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _scanning.value = true
+            repository.smartScan() // Only adds new books
+            _localBooks.value = repository.getSavedBooks()
+            loadContinueReading(_localBooks.value)
+            _scanning.value = false
+        }
+    }
+
+    private fun loadContinueReading(books: List<Book>) {
+        val continueUris = prefs.getContinueReading()
+        _continueReading.value = books.filter { continueUris.contains(it.uriString) }
+    }
+
 
     fun addToContinueReading(book: Book) {
         if (!_continueReading.value.any { it.uriString == book.uriString }) {
@@ -108,6 +134,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         prefs.addToHistory(book.uriString, timestamp)
     }
 
+    private fun loadHistory(books: List<Book>) {
+        val historyData = prefs.getHistory()
+
+        _history.clear()
+
+        historyData
+            .sortedByDescending { it.second }
+            .forEach { (uri, timestamp) ->
+                books.find { it.uriString == uri }
+                    ?.let { book ->
+                        _history.add(HistoryEntry(book, timestamp))
+                    }
+            }
+    }
     fun updateGoal(newGoal: Int) {
         goal = newGoal
         prefs.saveGoal(newGoal)
@@ -118,9 +158,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         prefs.setFirstLaunchDone()
     }
 
-    fun onPermissionGranted() {
-        if (!hasScannedOnce) scanDeviceBooks()
-    }
 }
 
 

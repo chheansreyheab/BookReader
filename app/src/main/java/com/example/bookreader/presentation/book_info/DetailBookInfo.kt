@@ -46,7 +46,7 @@ object DetailBookInfo : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
         val book = HomeScreen.selectedBook ?: return
         val context = LocalContext.current
         val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -159,10 +159,33 @@ object DetailBookInfo : Screen {
                         viewModel.addToHistory(book)
 
                         val uri = Uri.parse(book.uriString)
-                        val intent = Intent(context, PdfViewerActivity::class.java).apply {
+                        /*val intent = Intent(context, PdfViewerActivity::class.java).apply {
                             putExtra(PdfViewerActivity.EXTRA_URI, uri)
                         }
-                        context.startActivity(intent)
+                        context.startActivity(intent)*/
+                        val mimeType = context.contentResolver.getType(uri) ?: "*/*"
+
+                        when (mimeType) {
+                            "application/pdf" -> {
+                                val intent = Intent(context, PdfViewerActivity::class.java)
+                                intent.putExtra(PdfViewerActivity.EXTRA_URI, uri)
+                                context.startActivity(intent)
+                            }
+
+                            "application/epub+zip" -> {
+                                val intent = Intent(context, EpubViewerActivity::class.java)
+                                intent.putExtra(EpubViewerActivity.EXTRA_URI, uri)
+                                context.startActivity(intent)
+                            }
+
+                            else -> {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(uri, mimeType)
+                                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                }
+                                context.startActivity(intent)
+                            }
+                        }
                     }
                 )
 

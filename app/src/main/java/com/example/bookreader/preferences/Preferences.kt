@@ -124,26 +124,21 @@ class Preferences(context: Context) {
         return !prefs.getBoolean("first_launch_done", false)
     }
 
-    // Save scanned book URIs persistently
-    fun saveScannedBooks(uris: Set<String>) {
-        prefs.edit().putStringSet(KEY_SCANNED_BOOKS, uris).apply()
+    fun getSavedBookUris(): Set<String> {
+        return prefs.getStringSet("saved_books", emptySet()) ?: emptySet()
     }
 
-    // Get scanned book URIs
-    fun getScannedBooks(): Set<String> {
-        return prefs.getStringSet(KEY_SCANNED_BOOKS, emptySet()) ?: emptySet()
+    fun saveBookUris(uris: Set<String>) {
+        prefs.edit().putStringSet("saved_books", uris).apply()
     }
 
-    // Save last scan timestamp
     fun saveLastScanTime(time: Long) {
-        prefs.edit().putLong(KEY_LAST_SCAN_TIME, time).apply()
+        prefs.edit().putLong("last_scan_time", time).apply()
     }
 
-    // Get last scan timestamp
     fun getLastScanTime(): Long {
-        return prefs.getLong(KEY_LAST_SCAN_TIME, 0L)
+        return prefs.getLong("last_scan_time", 0L)
     }
-
 
 
 }

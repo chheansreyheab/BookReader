@@ -23,7 +23,7 @@ object AboutScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {

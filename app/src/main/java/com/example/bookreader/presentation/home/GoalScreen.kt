@@ -36,7 +36,7 @@ object GoalScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
 
         val viewModel: HomeViewModel = viewModel()
         var goalInput

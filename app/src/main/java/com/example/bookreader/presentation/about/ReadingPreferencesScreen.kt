@@ -23,7 +23,7 @@ object ReadingPreferencesScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)?) {
+    override fun Content(onNavigate: ((Screen) -> Unit)) {
         Column(
             modifier = Modifier.Companion.fillMaxSize()
         ) {
