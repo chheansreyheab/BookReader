@@ -1,3 +1,10 @@
+package com.example.bookreader.presentation.home
+
+import BookReaderTheme
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -6,12 +13,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,33 +33,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookreader.R
-import com.example.bookreader.presentation.home.HomeScreen
-import com.example.bookreader.presentation.home.HomeViewModel
-import com.example.bookreader.presentation.navigator.Screen
-import com.example.bookreader.presentation.setting.SettingScreen
 
-object GoalScreen : Screen {
+class GoalActivity : ComponentActivity() {
+
+    private val viewModel: HomeViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            BookReaderTheme(dynamicColor = false) {
+                GoalScreenContent(
+                    viewModel = viewModel,
+                    onNavigateHome = { finish() },
+                    onNavigateSettings = { finish() }
+                )
+            }
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun Content(onNavigate: ((Screen) -> Unit)) {
-
-        val viewModel: HomeViewModel = viewModel()
-        var goalInput
-        by remember { mutableStateOf("") }
+    fun GoalScreenContent(
+        viewModel: HomeViewModel,
+        onNavigateHome: () -> Unit,
+        onNavigateSettings: () -> Unit
+    ) {
+        var goalInput by remember { mutableStateOf("") }
 
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("") },
                     navigationIcon = {
-                        IconButton(onClick = { onNavigate?.invoke(SettingScreen) }) {
+                        IconButton(onClick = { onNavigateSettings() }) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_arrow_back),
+                                painter = painterResource(
+                                    R.drawable.ic_arrow_back),
                                 contentDescription = "Back"
                             )
                         }
@@ -67,10 +92,12 @@ object GoalScreen : Screen {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+
                 Text(
                     text = "Set Your Reading Goal",
                     style = MaterialTheme.typography.titleLarge
                 )
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
                     text = "How many books do you want to read?",
@@ -81,20 +108,33 @@ object GoalScreen : Screen {
 
                 OutlinedTextField(
                     value = goalInput,
-                    onValueChange = { goalInput = it },
+                    onValueChange = { newValue ->
+                        // Allow only digits
+                        if (newValue.all { it.isDigit() }) {
+                            goalInput = newValue
+                        }
+                    },
                     label = { Text("Enter number of books") },
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(20.dp),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFFF5F5F5),
+                        unfocusedContainerColor = Color(0xFFF5F5F5)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(50.dp))
 
-                // Set Goal Button
                 Button(
                     onClick = {
                         val newGoal = goalInput.toIntOrNull() ?: 0
                         viewModel.updateGoal(newGoal)
                         viewModel.markFirstLaunchDone()
-                        onNavigate?.invoke(HomeScreen)
+                        onNavigateHome()
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -103,11 +143,10 @@ object GoalScreen : Screen {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Skip Button
                 TextButton(
                     onClick = {
                         viewModel.markFirstLaunchDone()
-                        onNavigate?.invoke(HomeScreen)
+                        onNavigateHome()
                     }
                 ) {
                     Text("I'll set my goal later")

@@ -1,6 +1,5 @@
 package com.example.bookreader.presentation.home
 
-import GoalScreen
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -102,7 +101,7 @@ object HomeScreen : Screen {
                             viewModel.scanBooks()
 
                             if (viewModel.isFirstLaunch) {
-                                onNavigate?.invoke(GoalScreen)
+                                context.startActivity(Intent(context, GoalActivity::class.java))
                             }
                         }
 
@@ -140,10 +139,12 @@ object HomeScreen : Screen {
                         val content = uiState as HomeUiState.Content
 
                         // --- Goal Card ---
-                        GoalCard(
-                            currentBooks = content.continueReading.size,
-                            totalBooks = viewModel.goal
-                        )
+                        viewModel.goal?.let { goalValue ->
+                            GoalCard(
+                                currentBooks = content.continueReading.size,
+                                totalBooks = goalValue
+                            )
+                        }
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // --- Continue Reading ---

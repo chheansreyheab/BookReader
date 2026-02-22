@@ -33,6 +33,8 @@
 
         <activity android:name=".presentation.book_info.PdfViewerActivity" />
         <activity android:name=".presentation.book_info.EpubViewerActivity"/>
+        <activity android:name=".presentation.home.GoalActivity"/>
+
     </application>
 
 </manifest>

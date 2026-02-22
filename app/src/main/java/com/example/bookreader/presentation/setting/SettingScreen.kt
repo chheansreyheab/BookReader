@@ -1,6 +1,6 @@
 package com.example.bookreader.presentation.setting
 
-import GoalScreen
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -19,6 +20,7 @@ import com.example.bookreader.R
 import com.example.bookreader.presentation.about.AboutScreen
 import com.example.bookreader.presentation.about.ReadingPreferencesScreen
 import com.example.bookreader.presentation.browse.BrowseScan
+import com.example.bookreader.presentation.home.GoalActivity
 import com.example.bookreader.presentation.library.LibraryScreen
 import com.example.bookreader.presentation.navigator.Screen
 
@@ -32,6 +34,7 @@ object SettingScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SettingScreenContent(onNavigate: ((Screen) -> Unit)?) {
+        val context = LocalContext.current
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = {
@@ -86,7 +89,9 @@ object SettingScreen : Screen {
                 icon = painterResource(id = R.drawable.ic_person_celebrate),
                 title = "Goal",
                 subtitle = "Set reading goal",
-                onClick = { onNavigate?.invoke(GoalScreen) }
+                onClick = {
+                    context.startActivity(Intent(context, GoalActivity::class.java))
+                    }
             )
 
             SettingItem(
