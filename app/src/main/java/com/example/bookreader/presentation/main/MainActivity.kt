@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +33,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.bookreader.R
+import com.example.bookreader.core.ThemeMode
+import com.example.bookreader.core.ThemePreference
 import com.example.bookreader.preferences.Constants
 import com.example.bookreader.presentation.history.HistoryScreen
 import com.example.bookreader.presentation.home.HomeScreen
@@ -44,8 +48,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val themePreference = ThemePreference(this)
         setContent {
-            BookReaderTheme(dynamicColor = false) {
+            val themeMode by themePreference.themeFlow
+                .collectAsState(initial = ThemeMode.SYSTEM)
+
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+
+            BookReaderTheme(darkTheme = darkTheme, dynamicColor = false) {
                 MainScreen()
             }
         }
@@ -63,12 +77,6 @@ fun MainScreen() {
 
     val savedScreen = preferences.getLastScreen()
 
-    SideEffect {
-        val window = (view.context as Activity).window
-        window.navigationBarColor = color.toArgb()
-        WindowInsetsControllerCompat(window, view)
-            .isAppearanceLightNavigationBars = true
-    }
 
     // Bottom navigation items
     val items = listOf(

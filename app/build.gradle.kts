@@ -88,6 +88,7 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
     implementation("com.google.android.material:material:1.13.0")
 
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     // Debug tools
     debugImplementation(libs.androidx.ui.tooling)
 }
