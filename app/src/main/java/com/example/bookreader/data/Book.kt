@@ -8,10 +8,11 @@ data class Book(
     val author: String,
     val coverRes: Int? = null,
     val coverBytes: ByteArray? = null,
-    val currentRead: Int = 0,
+    var currentRead: Int = 0,
     val totalRead: Int = 0,
     val uriString: String,
-    val description: String = "No description"
+    val description: String = "No description",
+    val scrollProgress: Float = 0f
 )
 
 

@@ -74,6 +74,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         HomeUiState.Content(localBooks = books, continueReading = continueBooks)
     }.stateIn(viewModelScope, SharingStarted.Lazily, HomeUiState.Loading)
 
+    fun updateScrollProgress(book: Book, progress: Float) {
+        val updatedList = _continueReading.value.map {
+            if (it.uriString == book.uriString) it.copy(scrollProgress = progress)
+            else it
+        }
+        _continueReading.value = updatedList
+    }
 
     init {
         loadBooks()

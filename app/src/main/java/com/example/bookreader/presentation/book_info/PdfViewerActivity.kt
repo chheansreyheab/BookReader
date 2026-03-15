@@ -70,6 +70,7 @@ class PdfViewerActivity : ComponentActivity() {
                 )
             }
         ) { padding ->
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
